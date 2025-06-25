@@ -35,9 +35,9 @@ const CartItem = ({ item }) => {
 					</div>
 
 					<div className='text-end md:order-4 md:w-32'>
-						<p className='text-base font-bold text-[#2B4EE6]'>${item.price}</p>
+						<p className='text-base font-bold text-[#2B4EE6]'>{item.price} ron</p>
 						<p className={`text-sm ${item.stock > 0 ? 'text-green-400' : 'text-red-400'}`}>
-							{item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
+							{item.stock > 0 ? `${item.stock} in stoc` : 'Lipsa stoc'}
 						</p>
 					</div>
 				</div>

@@ -1,27 +1,52 @@
-import { BarChart, PlusCircle, ShoppingBasket, Grid } from "lucide-react";
+import { BarChart, PlusCircle, ShoppingBasket, Grid, Package, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 import AnalyticsTab from "../components/AnalyticsTab";
 import CreateProductForm from "../components/CreateProductForm";
 import ProductsList from "../components/ProductsList";
 import CategoriesTab from "../components/CategoriesTab";
+import OrdersList from "../components/OrdersList";
 import { useProductStore } from "../stores/useProductStore";
+import { useUserStore } from "../stores/useUserStore";
+import MechanicsAdmin from "../components/MechanicsAdmin";
+import AppointmentsList from "../components/AppointmentsList";
 
 const tabs = [
-	{ id: "create", label: "Create Product", icon: PlusCircle },
-	{ id: "products", label: "Products", icon: ShoppingBasket },
-	{ id: "categories", label: "Categories", icon: Grid },
-	{ id: "analytics", label: "Analytics", icon: BarChart },
+	{ id: "create", label: "Adaugă Produs", icon: PlusCircle },
+	{ id: "products", label: "Produse", icon: ShoppingBasket },
+	{ id: "categories", label: "Categorii", icon: Grid },
+	{ id: "orders", label: "Comenzi", icon: Package },
+	{ id: "analytics", label: "Analitice", icon: BarChart },
+	{ id: "mechanics", label: "Mecanici", icon: User },
+	{ id: "appointments", label: "Programări", icon: User },
 ];
 
 const AdminPage = () => {
 	const [activeTab, setActiveTab] = useState("create");
 	const { fetchAllProducts } = useProductStore();
+	const { user } = useUserStore();
+	const navigate = useNavigate();
 
 	useEffect(() => {
+		if (!user) {
+			navigate("/login");
+			return;
+		}
+
+		if (user.role !== "admin") {
+			navigate("/");
+			return;
+		}
+
 		fetchAllProducts();
-	}, [fetchAllProducts]);
+	}, [fetchAllProducts, user, navigate]);
+
+	// Show loading or redirect if not admin
+	if (!user || user.role !== "admin") {
+		return null;
+	}
 
 	return (
 		<div className='min-h-screen bg-[#0B0F17]'>
@@ -62,7 +87,10 @@ const AdminPage = () => {
 					{activeTab === "create" && <CreateProductForm />}
 					{activeTab === "products" && <ProductsList />}
 					{activeTab === "categories" && <CategoriesTab />}
+					{activeTab === "orders" && <OrdersList />}
 					{activeTab === "analytics" && <AnalyticsTab />}
+					{activeTab === "mechanics" && <MechanicsAdmin />}
+					{activeTab === "appointments" && <AppointmentsList />}
 				</motion.div>
 			</div>
 		</div>

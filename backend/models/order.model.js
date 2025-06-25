@@ -19,6 +19,11 @@ const orderSchema = new mongoose.Schema(
 					required: true,
 					min: 1,
 				},
+				price: {
+					type: Number,
+					required: true,
+					min: 0,
+				},
 			},
 		],
 		totalPrice: {
@@ -60,6 +65,11 @@ const orderSchema = new mongoose.Schema(
 		},
 		deliveredAt: {
 			type: Date,
+		},
+		stripeSessionId: {
+			type: String,
+			unique: true,
+			sparse: true,
 		},
 	},
 	{ timestamps: true }

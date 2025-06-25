@@ -33,7 +33,7 @@ const CategoryPage = () => {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, delay: 0.2 }}
 					>
-						{categoryName && `Browse our collection of ${categoryName.toLowerCase()} by subcategory`}
+						{categoryName && `Vezi colecția noastră de ${categoryName.toLowerCase()} pe subcategorii`}
 					</motion.p>
 				</div>
 
@@ -46,10 +46,10 @@ const CategoryPage = () => {
 					{subcategories.length === 0 ? (
 						<div className='col-span-full flex flex-col items-center justify-center py-16 px-4'>
 							<h2 className='text-2xl font-semibold text-gray-300 text-center mb-4'>
-								No subcategories found
+								Nu am găsit subcategorii
 							</h2>
 							<p className='text-gray-400 text-center max-w-md'>
-								We couldn't find any subcategories in this category. Please check back later or explore other categories.
+								Nu am găsit subcategorii în această categorie. Revino mai târziu sau explorează alte categorii.
 							</p>
 						</div>
 					) : (
@@ -69,7 +69,7 @@ const CategoryPage = () => {
 								<div className='absolute inset-0 bg-gradient-to-t from-black/80 to-transparent'></div>
 								<div className='absolute bottom-0 left-0 right-0 p-4'>
 									<h3 className='text-xl font-semibold text-white mb-1'>{subcategory.name}</h3>
-									<p className='text-sm text-gray-300'>Browse {subcategory.name}</p>
+									<p className='text-sm text-gray-300'>Vezi {subcategory.name}</p>
 								</div>
 							</Link>
 						))

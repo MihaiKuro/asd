@@ -24,7 +24,7 @@ const Navbar = () => {
 						<div className='relative hidden sm:flex items-center'>
 							<input
 								type="text"
-								placeholder="Search parts..."
+								placeholder="Caută piese..."
 								className='w-64 px-4 py-2 pl-10 bg-gray-800 text-gray-300 rounded-full border border-gray-700 focus:outline-none focus:border-[#2B4EE6]'
 							/>
 							<Search className='absolute left-3 text-gray-400' size={18} />

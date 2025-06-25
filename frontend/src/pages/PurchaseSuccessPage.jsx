@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useCartStore } from "../stores/useCartStore";
 import axios from "../lib/axios";
 import Confetti from "react-confetti";
+import { toast } from "react-hot-toast";
 
 const PurchaseSuccessPage = () => {
 	const [isProcessing, setIsProcessing] = useState(true);
@@ -13,12 +14,31 @@ const PurchaseSuccessPage = () => {
 	useEffect(() => {
 		const handleCheckoutSuccess = async (sessionId) => {
 			try {
-				await axios.post("/payments/checkout-success", {
+				// Process the successful payment with full URL to avoid any axios config issues
+				const timestamp = Date.now();
+await axios.post(`/payments/checkout-success?_t=${timestamp}`, {
 					sessionId,
+				}, {
+					headers: {
+						'Cache-Control': 'no-cache',
+						'Pragma': 'no-cache'
+					},
+					withCredentials: true
 				});
-				clearCart();
+				
+				// Clear the cart after successful payment
+				await clearCart();
+				toast.success("Order completed successfully! Your cart has been cleared.");
+				
 			} catch (error) {
-				console.log(error);
+				console.error("Error processing checkout success:", error);
+				// Even if there's an error, try to clear the cart
+				try {
+					await clearCart();
+				} catch (clearError) {
+					console.error("Error clearing cart:", clearError);
+				}
+				setError("There was an issue processing your order, but your payment was successful.");
 			} finally {
 				setIsProcessing(false);
 			}
@@ -28,14 +48,40 @@ const PurchaseSuccessPage = () => {
 		if (sessionId) {
 			handleCheckoutSuccess(sessionId);
 		} else {
+			// If no session ID, still try to clear cart (in case user navigates directly)
+			clearCart().catch(console.error);
 			setIsProcessing(false);
 			setError("No session ID found in the URL");
 		}
 	}, [clearCart]);
 
-	if (isProcessing) return "Processing...";
+	if (isProcessing) {
+		return (
+			<div className="h-screen flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B4EE6] mx-auto mb-4"></div>
+					<p className="text-gray-300">Processing your payment...</p>
+				</div>
+			</div>
+		);
+	}
 
-	if (error) return `Error: ${error}`;
+	if (error) {
+		return (
+			<div className="h-screen flex items-center justify-center px-4">
+				<div className="max-w-md w-full bg-gray-800 rounded-lg shadow-xl p-6 text-center">
+					<h1 className="text-xl font-bold text-red-400 mb-4">Payment Processing Issue</h1>
+					<p className="text-gray-300 mb-6">{error}</p>
+					<Link
+						to="/"
+						className="bg-[#2B4EE6] hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+					>
+						Return to Home
+					</Link>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className='h-screen flex items-center justify-center px-4'>

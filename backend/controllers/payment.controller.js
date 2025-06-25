@@ -156,16 +156,49 @@ export const checkoutSuccess = async (req, res) => {
 				);
 			}
 
+			// Prevent duplicate orders for the same Stripe session
+			const existingOrder = await Order.findOne({ stripeSessionId: sessionId });
+			if (existingOrder) {
+				return res.status(200).json({
+					success: true,
+					message: "Order already processed",
+					orderId: existingOrder._id,
+				});
+			}
+
 			// create a new Order
 			const products = JSON.parse(session.metadata.products);
+
+			// SCĂDEREA STOCULUI pentru fiecare produs
+			const Product = (await import('../models/product.model.js')).default;
+			for (const item of products) {
+				const product = await Product.findById(item.id);
+				if (product) {
+					if (product.stock < item.quantity) {
+						return res.status(400).json({ message: `Insufficient stock for product: ${product.name}` });
+					}
+					product.stock -= item.quantity;
+					await product.save();
+				}
+			}
+
 			const newOrder = new Order({
 				user: session.metadata.userId,
-				products: products.map((product) => ({
+				orderItems: products.map((product) => ({
 					product: product.id,
 					quantity: product.quantity,
-					price: product.price,
+					price: Number(product.price)
 				})),
-				totalAmount: session.amount_total , 
+				totalPrice: session.amount_total / 100, // Stripe amount is in cents
+				shippingAddress: {
+					street: "Online payment - no address",
+					city: "Online",
+					postalCode: "000000",
+					country: "RO"
+				},
+				paymentMethod: "card",
+				isPaid: true,
+				paidAt: new Date(),
 				stripeSessionId: sessionId,
 			});
 

@@ -4,15 +4,22 @@ import { useCartStore } from '../stores/useCartStore';
 import { useUserStore } from '../stores/useUserStore';
 import { Truck, Store, CreditCard, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { loadStripe } from "@stripe/stripe-js";
+import axios from '../lib/axios';
+
+const stripePromise = loadStripe(
+	"pk_test_51RRX4nRqG6J0ltnNnb7z43YF1w3QxkCgs1IyQThg31wXDZgTevtlHNmurVuhet6awNb2QFrqntptC271iVCApama00AzTtMut1"
+);
 
 const CheckoutModal = ({ isOpen, onClose }) => {
-    const { cart, total, subtotal } = useCartStore();
+    const { cart, total, subtotal, coupon, isCouponApplied, clearCart } = useCartStore();
     const { user } = useUserStore();
     const [step, setStep] = useState(1);
     const [deliveryMethod, setDeliveryMethod] = useState('courier');
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [useProfileAddress, setUseProfileAddress] = useState(false);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [billingDetails, setBillingDetails] = useState({
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
@@ -105,10 +112,116 @@ const CheckoutModal = ({ isOpen, onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Here you would handle the order submission with billingDetails, deliveryMethod, paymentMethod
-        console.log('Submitting order with:', { billingDetails, deliveryMethod, paymentMethod, cart });
-        toast.success('Order placed successfully!');
-        onClose();
+        
+        if (paymentMethod === 'card') {
+            await handleStripePayment();
+        } else {
+            await handleCashOnDelivery();
+        }
+    };
+
+    const handleStripePayment = async () => {
+        try {
+            setIsProcessing(true);
+            
+            // Validare câmpuri obligatorii
+            if (!billingDetails.firstName || !billingDetails.lastName || !billingDetails.email || !billingDetails.phone) {
+                toast.error('Te rugăm să completezi toate câmpurile obligatorii');
+                return;
+            }
+
+            if (deliveryMethod === 'courier' && (!billingDetails.address || !billingDetails.city || !billingDetails.postalCode)) {
+                toast.error('Te rugăm să completezi toate câmpurile de adresă pentru livrarea prin curier');
+                return;
+            }
+
+            // Prepare products for Stripe
+            const products = cart.map(item => ({
+                _id: item._id,
+                name: item.name,
+                price: Number(item.price),
+                quantity: item.quantity,
+                image: item.image
+            }));
+
+            // Create checkout session
+            const response = await axios.post('/payments/create-checkout-session', {
+                products,
+                couponCode: isCouponApplied ? coupon?.code : null
+            });
+
+            if (response.data.id) {
+                // Redirect to Stripe Checkout
+                const stripe = await stripePromise;
+                const { error } = await stripe.redirectToCheckout({
+                    sessionId: response.data.id
+                });
+
+                if (error) {
+                    console.error('Stripe error:', error);
+                    toast.error('Plata a eșuat. Încearcă din nou.');
+                }
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            toast.error(error.response?.data?.message || 'Plata a eșuat. Încearcă din nou.');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleCashOnDelivery = async () => {
+        try {
+            setIsProcessing(true);
+            
+            // Validare câmpuri obligatorii
+            if (!billingDetails.firstName || !billingDetails.lastName || !billingDetails.email || !billingDetails.phone) {
+                toast.error('Te rugăm să completezi toate câmpurile obligatorii');
+                return;
+            }
+
+            if (deliveryMethod === 'courier' && (!billingDetails.address || !billingDetails.city || !billingDetails.postalCode)) {
+                toast.error('Te rugăm să completezi toate câmpurile de adresă pentru livrarea prin curier');
+                return;
+            }
+
+            // Prepare order items for backend
+            const orderItems = cart.map(item => ({
+                product: item._id,
+                quantity: item.quantity,
+                price: item.price
+            }));
+
+            // Prepare shipping address
+            const shippingAddress = {
+                street: billingDetails.address,
+                city: billingDetails.city,
+                postalCode: billingDetails.postalCode,
+                country: 'Romania'
+            };
+
+            // Create order for cash on delivery
+            const orderData = {
+                orderItems,
+                shippingAddress,
+                paymentMethod: 'cash',
+                totalPrice: total
+            };
+
+            const response = await axios.post('/orders', orderData);
+            
+            if (response.data) {
+                // Clear cart after successful order placement
+                await clearCart();
+                toast.success('Comanda a fost plasată cu succes! Vei plăti la livrare. Coșul tău a fost golit.');
+                onClose();
+            }
+        } catch (error) {
+            console.error('Order error:', error);
+            toast.error(error.response?.data?.message || 'Nu s-a putut plasa comanda. Încearcă din nou.');
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -123,7 +236,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
             >
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-[#2B4EE6]">Checkout</h2>
+                        <h2 className="text-2xl font-bold text-[#2B4EE6]">Finalizare comandă</h2>
                         <button
                             onClick={onClose}
                             className="text-gray-400 hover:text-white"
@@ -134,7 +247,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
 
                     {/* Progress Steps */}
                     <div className="flex justify-between mb-8">
-                        {['Delivery', 'Billing', 'Payment'].map((label, index) => (
+                        {["Livrare", "Date facturare", "Plată"].map((label, index) => (
                             <div
                                 key={label}
                                 className={`flex items-center ${
@@ -158,7 +271,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                     {/* Step 1: Delivery Method */}
                     {step === 1 && (
                         <div className="space-y-6">
-                            <h3 className="text-xl font-semibold text-white mb-4">Choose Delivery Method</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">Alege metoda de livrare</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <button
                                     onClick={() => setDeliveryMethod('courier')}
@@ -170,8 +283,8 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                 >
                                     <Truck className="w-6 h-6 text-[#2B4EE6]" />
                                     <div className="text-left">
-                                        <h4 className="font-medium text-white">Courier Delivery</h4>
-                                        <p className="text-sm text-gray-400">Delivery to your address</p>
+                                        <h4 className="font-medium text-white">Livrare prin curier</h4>
+                                        <p className="text-sm text-gray-400">Livrare rapidă la adresa ta</p>
                                     </div>
                                 </button>
                                 <button
@@ -184,8 +297,8 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                 >
                                     <Store className="w-6 h-6 text-[#2B4EE6]" />
                                     <div className="text-left">
-                                        <h4 className="font-medium text-white">Store Pickup</h4>
-                                        <p className="text-sm text-gray-400">Pick up from our store</p>
+                                        <h4 className="font-medium text-white">Ridicare din magazin</h4>
+                                        <p className="text-sm text-gray-400">Ridică de la magazinul nostru</p>
                                     </div>
                                 </button>
                             </div>
@@ -195,7 +308,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                     {/* Step 2: Billing Details */}
                     {step === 2 && (
                         <div className="space-y-6">
-                            <h3 className="text-xl font-semibold text-white mb-4">Billing Details</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">Date facturare</h3>
                             {user?.addresses && user.addresses.length > 0 && (
                                 <div className="mb-4">
                                     <label className="flex items-center text-gray-400">
@@ -205,11 +318,10 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                             onChange={handleUseProfileAddressChange}
                                             className="h-4 w-4 text-[#2B4EE6] bg-gray-800 border-gray-600 rounded focus:ring-[#2B4EE6]"
                                         />
-                                        <span className="ml-2">Use address from my profile</span>
+                                        <span className="ml-2">Folosește adresa din profilul meu</span>
                                     </label>
-                                    {useProfileAddress && user.addresses.length > 1 && (
+                                    {useProfileAddress && (
                                         <div className="mt-2">
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">Select Address</label>
                                             <select
                                                 value={selectedAddressId || ''}
                                                 onChange={handleAddressSelect}
@@ -233,7 +345,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                         name="firstName"
                                         value={billingDetails.firstName}
                                         onChange={handleInputChange}
-                                        readOnly={useProfileAddress} // Make readOnly if using profile address
+                                        readOnly={useProfileAddress}
                                         className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                 </div>
@@ -244,7 +356,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                         name="lastName"
                                         value={billingDetails.lastName}
                                         onChange={handleInputChange}
-                                        readOnly={useProfileAddress} // Make readOnly if using profile address
+                                        readOnly={useProfileAddress}
                                         className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                 </div>
@@ -255,25 +367,25 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                         name="email"
                                         value={billingDetails.email}
                                         onChange={handleInputChange}
-                                        readOnly={useProfileAddress} // Make readOnly if using profile address
+                                        readOnly={useProfileAddress}
                                         className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Phone</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Telefon</label>
                                     <input
                                         type="tel"
                                         name="phone"
                                         value={billingDetails.phone}
                                         onChange={handleInputChange}
-                                        readOnly={useProfileAddress} // Make readOnly if using profile address
+                                        readOnly={useProfileAddress}
                                         className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                 </div>
                                 {deliveryMethod === 'courier' && (
                                     <>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">Address</label>
+                                            <label className="block text-sm font-medium text-gray-400 mb-1">Adresă</label>
                                             <input
                                                 type="text"
                                                 name="address"
@@ -284,7 +396,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">City</label>
+                                            <label className="block text-sm font-medium text-gray-400 mb-1">Oraș</label>
                                             <input
                                                 type="text"
                                                 name="city"
@@ -295,7 +407,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-400 mb-1">Postal Code</label>
+                                            <label className="block text-sm font-medium text-gray-400 mb-1">Cod poștal</label>
                                             <input
                                                 type="text"
                                                 name="postalCode"
@@ -308,7 +420,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                     </>
                                 )}
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Company (Optional)</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Companie (opțional)</label>
                                     <input
                                         type="text"
                                         name="company"
@@ -318,7 +430,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">CUI (Optional)</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">CUI (opțional)</label>
                                     <input
                                         type="text"
                                         name="cui"
@@ -328,7 +440,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-400 mb-1">Reg. Com. (Optional)</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Reg. Com. (opțional)</label>
                                     <input
                                         type="text"
                                         name="regCom"
@@ -344,7 +456,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                     {/* Step 3: Payment Method */}
                     {step === 3 && (
                         <div className="space-y-6">
-                            <h3 className="text-xl font-semibold text-white mb-4">Choose Payment Method</h3>
+                            <h3 className="text-xl font-semibold text-white mb-4">Alege metoda de plată</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <button
                                     onClick={() => setPaymentMethod('card')}
@@ -356,8 +468,8 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                 >
                                     <CreditCard className="w-6 h-6 text-[#2B4EE6]" />
                                     <div className="text-left">
-                                        <h4 className="font-medium text-white">Credit/Debit Card</h4>
-                                        <p className="text-sm text-gray-400">Pay with your card</p>
+                                        <h4 className="font-medium text-white">Card de credit/debit</h4>
+                                        <p className="text-sm text-gray-400">Plătește cu cardul</p>
                                     </div>
                                 </button>
                                 <button
@@ -370,8 +482,8 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                                 >
                                     <Wallet className="w-6 h-6 text-[#2B4EE6]" />
                                     <div className="text-left">
-                                        <h4 className="font-medium text-white">Cash on Delivery</h4>
-                                        <p className="text-sm text-gray-400">Pay when you receive</p>
+                                        <h4 className="font-medium text-white">Plată la livrare</h4>
+                                        <p className="text-sm text-gray-400">Plătești când primești coletul</p>
                                     </div>
                                 </button>
                             </div>
@@ -384,23 +496,26 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                             <button
                                 onClick={() => setStep(step - 1)}
                                 className="px-6 py-2 border border-gray-600 rounded-lg text-white hover:bg-gray-700"
+                                disabled={isProcessing}
                             >
-                                Back
+                                Înapoi
                             </button>
                         )}
                         {step < 3 ? (
                             <button
                                 onClick={() => setStep(step + 1)}
-                                className="px-6 py-2 bg-[#2B4EE6] rounded-lg text-white hover:bg-blue-600"
+                                className="px-6 py-2 bg-[#2B4EE6] rounded-lg text-white hover:bg-blue-600 disabled:opacity-50"
+                                disabled={isProcessing}
                             >
-                                Continue
+                                Continuă
                             </button>
                         ) : (
                             <button
                                 onClick={handleSubmit}
-                                className="px-6 py-2 bg-[#2B4EE6] rounded-lg text-white hover:bg-blue-600"
+                                className="px-6 py-2 bg-[#2B4EE6] rounded-lg text-white hover:bg-blue-600 disabled:opacity-50"
+                                disabled={isProcessing}
                             >
-                                Place Order
+                                {isProcessing ? 'Se procesează...' : paymentMethod === 'card' ? 'Plătește cu cardul' : 'Plasează comanda'}
                             </button>
                         )}
                     </div>

@@ -62,17 +62,17 @@ const CategoriesTab = () => {
 					});
 					updateSubcategory(editingSubcategory.parentCategory, response.data);
 					setEditingSubcategory(null);
-					toast.success("Subcategory updated successfully!");
+					toast.success("Subcategorie actualizată cu succes!");
 				} else {
 					// Create new subcategory
 					const parentCategoryId = categoryIdForSub || newSubcategory.parentCategory;
 					if (!parentCategoryId) {
-						throw new Error("Parent category ID is missing for subcategory.");
+						throw new Error("ID-ul categoriei părinte lipseste.");
 					}
 					const response = await axios.post(`/categories/${parentCategoryId}/subcategories`, newSubcategory);
 					addSubcategory(parentCategoryId, response.data.subcategories.pop());
 					setNewSubcategory({ name: "", image: "", parentCategory: "" });
-					toast.success("Subcategory created successfully!");
+					toast.success("Subcategorie creată cu succes!");
 				}
 			} else {
 				if (editingCategory) {
@@ -83,37 +83,41 @@ const CategoriesTab = () => {
 					});
 					updateCategory(response.data);
 					setEditingCategory(null);
-					toast.success("Category updated successfully!");
+					toast.success("Categorie actualizată cu succes!");
 				} else {
 					// Create new category
-					const response = await axios.post("/categories", newCategory);
-					addCategory(response.data);
-					setNewCategory({ name: "", image: "" });
-					toast.success("Category created successfully!");
+					try {
+						const response = await axios.post("/categories", newCategory);
+						addCategory(response.data);
+						setNewCategory({ name: "", image: "" });
+						toast.success("Categorie creată cu succes!");
+						await fetchCategories();
+					} catch (error) {
+						toast.error(error.response?.data?.message || "Ceva nu a mers bine");
+						return;
+					}
 				}
 			}
-		} catch (error) {
-			toast.error(error.response?.data?.message || "Something went wrong");
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	const handleDelete = async (categoryId, subcategoryId = null) => {
-		if (!window.confirm("Are you sure you want to delete this item?")) return;
-		
 		try {
 			if (subcategoryId) {
 				await axios.delete(`/categories/${categoryId}/subcategories/${subcategoryId}`);
 				deleteSubcategory(categoryId, subcategoryId);
-				toast.success("Subcategory deleted successfully!");
+				toast.success("Subcategorie ștearsă cu succes!");
+				await fetchCategories();
 			} else {
 				await axios.delete(`/categories/${categoryId}`);
 				deleteCategory(categoryId);
-				toast.success("Category deleted successfully!");
+				toast.success("Categorie ștearsă cu succes!");
+				await fetchCategories();
 			}
 		} catch (error) {
-			toast.error(error.response?.data?.message || "Failed to delete item");
+			toast.error(error.response?.data?.message || "Nu s-a putut șterge elementul");
 		}
 	};
 
@@ -149,13 +153,13 @@ const CategoriesTab = () => {
 					transition={{ duration: 0.5 }}
 				>
 					<h2 className='text-2xl font-semibold mb-6 text-[#2B4EE6]'>
-						{editingCategory ? "Edit Category" : "Create New Category"}
+						{editingCategory ? "Editează categoria" : "Creează o categorie nouă"}
 					</h2>
 
 					<form onSubmit={(e) => handleSubmit(e, false)} className='space-y-6'>
 						<div>
 							<label htmlFor='name' className='block text-sm font-medium text-gray-300'>
-								Category Name
+								Nume categorie
 							</label>
 							<input
 								type='text'
@@ -190,12 +194,12 @@ const CategoriesTab = () => {
 								focus:ring-2 focus:ring-[#2B4EE6] focus:border-[#2B4EE6] transition-colors duration-200'
 							>
 								<Upload className='h-5 w-5 inline-block mr-2' />
-								{editingCategory ? 'Change Image' : 'Upload Image'}
+								{editingCategory ? 'Schimbă imaginea' : 'Încarcă imagine'}
 							</label>
 							{((editingCategory && editingCategory.image) || newCategory.image) && (
 								<span className='ml-3 text-sm text-gray-400 flex items-center'>
 									<div className='w-2 h-2 bg-[#2B4EE6] rounded-full mr-2'></div>
-									Image uploaded
+									Imagine încărcată
 								</span>
 							)}
 						</div>
@@ -203,10 +207,10 @@ const CategoriesTab = () => {
 						{/* Preview current image when editing */}
 						{editingCategory && editingCategory.image && (
 							<div className='mt-4'>
-								<p className='text-sm text-gray-400 mb-2'>Current Image:</p>
+								<p className='text-sm text-gray-400 mb-2'>Imagine curentă:</p>
 								<img
 									src={editingCategory.image}
-									alt='Category preview'
+									alt='Preview categorie'
 									className='w-32 h-32 rounded-lg object-cover'
 								/>
 							</div>
@@ -215,27 +219,18 @@ const CategoriesTab = () => {
 						<div className='flex space-x-4'>
 							<motion.button
 								type='submit'
-								className='flex-1 flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg 
-								shadow-lg text-sm font-medium text-white bg-[#2B4EE6] hover:bg-blue-600 
-								focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2B4EE6] disabled:opacity-50
-								transition-colors duration-200'
+								className='w-full flex items-center justify-center rounded-lg bg-[#2B4EE6] px-6 py-3 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2B4EE6] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
 								disabled={loading}
-								whileHover={{ scale: 1.02 }}
-								whileTap={{ scale: 0.98 }}
 							>
 								{loading ? (
 									<>
-										<Loader className='mr-2 h-5 w-5 animate-spin' />
-										Loading...
+										<Loader className='animate-spin -ml-1 mr-2 h-5 w-5' />
+										Se salvează...
 									</>
 								) : (
 									<>
-										{editingCategory ? (
-											<Edit2 className='mr-2 h-5 w-5' />
-										) : (
-											<PlusCircle className='mr-2 h-5 w-5' />
-										)}
-										{editingCategory ? "Update Category" : "Create Category"}
+										<PlusCircle className='-ml-1 mr-2 h-5 w-5' />
+										{editingCategory ? 'Salvează categoria' : 'Creează categorie'}
 									</>
 								)}
 							</motion.button>
@@ -248,7 +243,7 @@ const CategoriesTab = () => {
 									whileHover={{ scale: 1.02 }}
 									whileTap={{ scale: 0.98 }}
 								>
-									Cancel
+									Anulează
 								</motion.button>
 							)}
 						</div>
@@ -262,7 +257,7 @@ const CategoriesTab = () => {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.5, delay: 0.2 }}
 				>
-					<h2 className='text-2xl font-semibold mb-6 text-[#2B4EE6]'>Categories</h2>
+					<h2 className='text-2xl font-semibold mb-6 text-[#2B4EE6]'>Categorii</h2>
 					<div className='space-y-4'>
 						{categories.map((category) => (
 							<div key={category._id} className='bg-gray-900/50 rounded-lg p-4'>
@@ -310,7 +305,7 @@ const CategoriesTab = () => {
 											<div className='flex space-x-2'>
 												<input
 													type='text'
-													placeholder='New subcategory name'
+													placeholder='Nume subcategorie nouă'
 													value={newSubcategory.name}
 													onChange={(e) => setNewSubcategory({ ...newSubcategory, name: e.target.value, parentCategory: category._id })}
 													className='flex-1 bg-gray-900/50 border border-gray-700 rounded-lg px-3 py-2 text-white'
@@ -328,13 +323,13 @@ const CategoriesTab = () => {
 													text-sm text-gray-300 hover:bg-gray-800/50'
 												>
 													<Upload className='h-4 w-4 inline-block mr-1' />
-													Image
+													Imagine
 												</label>
 												<button
 													type='submit'
 													className='bg-[#2B4EE6] text-white px-4 py-2 rounded-lg hover:bg-blue-600'
 												>
-													Add
+													Adăugă
 												</button>
 											</div>
 										</form>

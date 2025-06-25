@@ -44,7 +44,16 @@ export const useCartStore = create((set, get) => ({
 		}
 	},
 	clearCart: async () => {
-		set({ cart: [], coupon: null, total: 0, subtotal: 0 });
+		try {
+			// Clear cart from backend - send empty body to clear all items
+			await axios.delete("/cart", { data: {} });
+			// Clear cart from local state
+			set({ cart: [], coupon: null, total: 0, subtotal: 0, isCouponApplied: false });
+		} catch (error) {
+			console.error("Error clearing cart:", error);
+			// Even if backend call fails, clear local state
+			set({ cart: [], coupon: null, total: 0, subtotal: 0, isCouponApplied: false });
+		}
 	},
 	addToCart: async (product) => {
 		try {

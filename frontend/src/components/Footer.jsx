@@ -18,10 +18,10 @@ const Footer = () => {
           <div>
             <h3 className="mb-4">
               <span className="text-[#FF3B30] text-xl font-bold">Auto</span>
-              <span className="text-[#367BF5] text-xl font-bold">Parts</span>
+              <span className="text-[#367BF5] text-xl font-bold">Piese</span>
             </h3>
             <p className="text-sm text-gray-400 mb-4">
-              Your trusted source for quality auto parts and professional service.
+              Sursa ta de încredere pentru piese auto de calitate și service profesional.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-500 hover:text-gray-300 transition-colors">
@@ -41,26 +41,26 @@ const Footer = () => {
 
           {/* Quick Links Column */}
           <div>
-            <h3 className="text-white font-medium mb-4">Quick Links</h3>
+            <h3 className="text-white font-medium mb-4">Link-uri rapide</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-gray-400 hover:text-gray-300 transition-colors">
-                  Home
+                  Acasă
                 </Link>
               </li>
               <li>
                 <Link to="/products" className="text-gray-400 hover:text-gray-300 transition-colors">
-                  Products
+                  Produse
                 </Link>
               </li>
               <li>
                 <Link to="/services" className="text-gray-400 hover:text-gray-300 transition-colors">
-                  Services
+                  Servicii
                 </Link>
               </li>
               <li>
                 <Link to="/testimonials" className="text-gray-400 hover:text-gray-300 transition-colors">
-                  Testimonials
+                  Testimoniale
                 </Link>
               </li>
               <li>
@@ -73,7 +73,7 @@ const Footer = () => {
 
           {/* Product Categories Column */}
           <div>
-            <h3 className="text-white font-medium mb-4">Product Categories</h3>
+            <h3 className="text-white font-medium mb-4">Categorii produse</h3>
             <ul className="space-y-2">
               {categories.slice(0, 5).map((category) => (
                 <li key={category._id}>
@@ -90,7 +90,7 @@ const Footer = () => {
                   to="/categories" 
                   className="text-[#2B4EE6] hover:text-blue-400 transition-colors"
                 >
-                  View All Categories →
+                  Vezi toate categoriile →
                 </Link>
               </li>
             </ul>
@@ -98,12 +98,12 @@ const Footer = () => {
 
           {/* Contact Information Column */}
           <div>
-            <h3 className="text-white font-medium mb-4">Contact Information</h3>
+            <h3 className="text-white font-medium mb-4">Informații de contact</h3>
             <ul className="space-y-2 text-gray-400">
-              <li>123 Auto Center Drive</li>
-              <li>Anytown, ST 12345</li>
-              <li>Phone: (555) 123-4567</li>
-              <li>Email: info@autoparts.example</li>
+              <li>Str. Auto Center nr. 123</li>
+              <li>Orasul Meu, JU 12345</li>
+              <li>Telefon: 0740 123 456</li>
+              <li>Email: info@autopiese.ro</li>
             </ul>
           </div>
         </div>
@@ -112,17 +112,17 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-[#1A1F2B]">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-gray-500">
-              © 2025 AutoParts. All rights reserved.
+              © 2025 AutoPiese. Toate drepturile rezervate.
             </p>
             <div className="flex space-x-6 text-sm">
               <Link to="/privacy" className="text-gray-500 hover:text-gray-300 transition-colors">
-                Privacy Policy
+                Politica de confidențialitate
               </Link>
               <Link to="/terms" className="text-gray-500 hover:text-gray-300 transition-colors">
-                Terms of Service
+                Termeni și condiții
               </Link>
               <Link to="/shipping" className="text-gray-500 hover:text-gray-300 transition-colors">
-                Shipping Policy
+                Politica de livrare
               </Link>
             </div>
           </div>

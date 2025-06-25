@@ -73,7 +73,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
 						.slice(currentIndex, currentIndex + itemsPerPage)
 						.map((product) => (
 							<div
-								key={product.id}
+								key={product._id}
 								className='bg-gray-800 rounded-lg overflow-hidden group'
 							>
 								<div className='relative aspect-w-16 aspect-h-9'>
@@ -90,7 +90,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
 								</div>
 								<div className='p-4'>
 									<Link 
-										to={`/product/${product.id}`}
+										to={`/product/${product._id}`}
 										className='text-lg font-semibold text-white hover:text-blue-400 transition-colors line-clamp-2'
 									>
 										{product.name}
@@ -103,7 +103,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
 									</div>
 									<div className='flex items-baseline gap-2 mb-4'>
 										<span className='text-xl font-bold text-white'>
-											${product.price.toFixed(2)}
+											{product.price.toFixed(2)} ron
 										</span>
 										{product.originalPrice && (
 											<span className='text-gray-400 line-through text-sm'>
@@ -116,7 +116,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
 										className='w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors'
 									>
 										<ShoppingCart size={20} />
-										Add to Cart
+										Adaugă în coș
 									</button>
 								</div>
 							</div>
@@ -126,9 +126,9 @@ const FeaturedProducts = ({ featuredProducts }) => {
 				<div className='text-center mt-8'>
 					<Link
 						to='/products'
-						className='inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors'
+						className='inline-flex items-center px-6 py-3 bg-[#2B4EE6] hover:bg-blue-500 text-white font-semibold rounded-lg transition duration-300'
 					>
-						View All Products
+						Vezi toate produsele
 					</Link>
 				</div>
 			</div>

@@ -61,7 +61,16 @@ const ProfileLayout = () => {
                     >
                         <div className="mb-6 p-4 bg-[#2B4EE6] rounded-lg">
                             <p className="text-lg font-medium text-white">
-                                Salut, {user?.name}!
+                                {(() => {
+                                    const hasName = user?.firstName || user?.lastName;
+                                    if (hasName) {
+                                        return `Salut, ${user.firstName || ''} ${user.lastName || ''}!`;
+                                    } else if (user?.email) {
+                                        return `Salut, ${user.email}!`;
+                                    } else {
+                                        return 'Salut!';
+                                    }
+                                })()}
                             </p>
                             <p className="text-sm text-blue-200">
                                 {user?.email}

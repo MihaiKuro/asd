@@ -5,8 +5,8 @@ import toast from "react-hot-toast";
 import { useProductStore } from "../stores/useProductStore";
 import { useCategoryStore } from "../stores/useCategoryStore";
 
-const CreateProductForm = () => {
-	const { createProduct } = useProductStore();
+const EditProductForm = ({ product, onClose }) => {
+	const { updateProduct } = useProductStore();
 	const { categories, fetchCategories } = useCategoryStore();
 
 	useEffect(() => {
@@ -14,21 +14,20 @@ const CreateProductForm = () => {
 	}, [fetchCategories]);
 
 	const [formData, setFormData] = useState({
-		name: "",
-		description: "",
-		price: "",
-		category: "",
-		subcategory: "",
-		image: "",
-		stock: "",
-		basePrice: "",
+		name: product.name || "",
+		description: product.description || "",
+		price: product.price || "",
+		category: product.category?._id || "",
+		subcategory: product.subcategory?._id || "",
+		image: product.image || "",
+		stock: product.stock || "",
 	});
 
 	const [loading, setLoading] = useState(false);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
-		if (name === 'price' || name === 'stock' || name === 'basePrice') {
+		if (name === 'price' || name === 'stock') {
 			setFormData((prev) => ({
 				...prev,
 				[name]: parseFloat(value),
@@ -72,25 +71,16 @@ const CreateProductForm = () => {
 				throw new Error("Please select a subcategory");
 			}
 
-			await createProduct({
+			await updateProduct(product._id, {
 				...formData,
 				category: formData.category,
 				subcategory: formData.subcategory,
 			});
 
-			setFormData({
-				name: "",
-				description: "",
-				price: "",
-				category: "",
-				subcategory: "",
-				image: "",
-				stock: "",
-				basePrice: "",
-			});
-			toast.success("Product created successfully!");
+			toast.success("Product updated successfully!");
+			onClose();
 		} catch (error) {
-			toast.error(error.response?.data?.message || error.message || "Failed to create product");
+			toast.error(error.response?.data?.message || error.message || "Failed to update product");
 		} finally {
 			setLoading(false);
 		}
@@ -100,19 +90,19 @@ const CreateProductForm = () => {
 	const subcategoriesForSelectedCategory = selectedCategoryObject?.subcategories || [];
 
 	return (
-		<div className='max-w-2xl mx-auto'>
+		<div className='max-w-6xl mx-auto'>
 			<motion.div
 				className='bg-gray-800/50 backdrop-blur-sm border border-gray-700 shadow-lg rounded-lg p-6'
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5 }}
 			>
-				<h2 className='text-2xl font-semibold mb-6 text-[#2B4EE6]'>Adaugă produs nou</h2>
+				<h2 className='text-2xl font-semibold mb-6 text-[#2B4EE6]'>Edit Product</h2>
 
 				<form onSubmit={handleSubmit} className='space-y-6'>
 					<div>
 						<label htmlFor='name' className='block text-sm font-medium text-gray-300'>
-							Nume produs
+							Product Name
 						</label>
 						<input
 							type='text'
@@ -130,7 +120,7 @@ const CreateProductForm = () => {
 
 					<div>
 						<label htmlFor='description' className='block text-sm font-medium text-gray-300'>
-							Descriere
+							Description
 						</label>
 						<textarea
 							id='description'
@@ -149,7 +139,7 @@ const CreateProductForm = () => {
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
 							<label htmlFor='price' className='block text-sm font-medium text-gray-300'>
-								Preț (RON)
+								Price (RON)
 							</label>
 							<input
 								type='number'
@@ -168,27 +158,8 @@ const CreateProductForm = () => {
 						</div>
 
 						<div>
-							<label htmlFor='basePrice' className='block text-sm font-medium text-gray-300'>
-								Preț de bază (Cost - RON)
-							</label>
-							<input
-								type='number'
-								id='basePrice'
-								name='basePrice'
-								value={formData.basePrice}
-								onChange={handleChange}
-								min='0'
-								step='0.01'
-								className='mt-1 block w-full bg-gray-900/50 border border-gray-700 rounded-lg shadow-sm py-2.5
-								px-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2
-								focus:ring-[#2B4EE6] focus:border-[#2B4EE6] transition-colors duration-200'
-								autoComplete="off"
-							/>
-						</div>
-
-						<div>
 							<label htmlFor='stock' className='block text-sm font-medium text-gray-300'>
-								Stoc
+								Stock
 							</label>
 							<input
 								type='number'
@@ -208,7 +179,7 @@ const CreateProductForm = () => {
 
 					<div>
 						<label htmlFor='category' className='block text-sm font-medium text-gray-300'>
-							Categorie
+							Category
 						</label>
 						<select
 							id='category'
@@ -221,7 +192,7 @@ const CreateProductForm = () => {
 							required
 							autoComplete="category"
 						>
-							<option value=''>Selectează o categorie</option>
+							<option value=''>Select a category</option>
 							{categories.map((category) => (
 								<option key={category._id} value={category._id}>
 									{category.name}
@@ -273,7 +244,7 @@ const CreateProductForm = () => {
 								focus:ring-2 focus:ring-[#2B4EE6] focus:border-[#2B4EE6] transition-colors duration-200'
 							>
 								<Upload className='h-5 w-5 inline-block mr-2' />
-								Upload Image
+								{formData.image ? "Change Image" : "Upload Image"}
 							</label>
 							{formData.image && (
 								<span className='ml-3 text-sm text-gray-400 flex items-center'>
@@ -284,29 +255,44 @@ const CreateProductForm = () => {
 						</div>
 					</div>
 
-					<motion.button
-						type='submit'
-						className='w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg 
-						shadow-lg text-sm font-medium text-white bg-[#2B4EE6] hover:bg-blue-600 
-						focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2B4EE6] disabled:opacity-50
-						transition-colors duration-200'
-						disabled={loading}
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
-					>
-						{loading ? (
-							<>
-								<Loader className='mr-2 h-5 w-5 animate-spin' />
-								Creating...
-							</>
-						) : (
-							"Create Product"
-						)}
-					</motion.button>
+					<div className='flex gap-4'>
+						<motion.button
+							type='submit'
+							className='flex-1 flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg 
+							shadow-lg text-sm font-medium text-white bg-[#2B4EE6] hover:bg-blue-600 
+							focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2B4EE6] disabled:opacity-50
+							transition-colors duration-200'
+							disabled={loading}
+							whileHover={{ scale: 1.02 }}
+							whileTap={{ scale: 0.98 }}
+						>
+							{loading ? (
+								<>
+									<Loader className='mr-2 h-5 w-5 animate-spin' />
+									Updating...
+								</>
+							) : (
+								"Update Product"
+							)}
+						</motion.button>
+
+						<motion.button
+							type='button'
+							onClick={onClose}
+							className='flex-1 flex justify-center items-center py-2.5 px-4 border border-gray-700 rounded-lg 
+							shadow-lg text-sm font-medium text-gray-300 bg-gray-800/50 hover:bg-gray-700/50 
+							focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700
+							transition-colors duration-200'
+							whileHover={{ scale: 1.02 }}
+							whileTap={{ scale: 0.98 }}
+						>
+							Cancel
+						</motion.button>
+					</div>
 				</form>
 			</motion.div>
 		</div>
 	);
 };
 
-export default CreateProductForm;
+export default EditProductForm; 

@@ -56,7 +56,7 @@ const SubcategoryPage = () => {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, delay: 0.2 }}
 					>
-						{subcategoryName && `Browse our collection of ${subcategoryName.toLowerCase()} products`}
+						{subcategoryName && `Vezi colecția noastră de produse ${subcategoryName.toLowerCase()} pe subcategorii`}
 					</motion.p>
 				</div>
 
@@ -73,10 +73,10 @@ const SubcategoryPage = () => {
 					) : products.length === 0 ? (
 						<div className='col-span-full flex flex-col items-center justify-center py-16 px-4'>
 							<h2 className='text-2xl font-semibold text-gray-300 text-center mb-4'>
-								No products found
+								Nu am găsit produse
 							</h2>
 							<p className='text-gray-400 text-center max-w-md'>
-								We couldn't find any products in this subcategory. Please check back later or explore other categories.
+								Nu am găsit produse în această subcategorie. Revino mai târziu sau explorează alte categorii.
 							</p>
 						</div>
 					) : (

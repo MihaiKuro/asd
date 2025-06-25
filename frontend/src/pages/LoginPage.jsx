@@ -26,11 +26,11 @@ const LoginPage = () => {
 					transition={{ duration: 0.5, delay: 0.1 }}
 				>
 					<div className='text-center mb-8'>
-						<h2 className='text-3xl font-bold text-white mb-2'>Sign in to your account</h2>
+						<h2 className='text-3xl font-bold text-white mb-2'>Autentifică-te</h2>
 						<p className='text-sm text-gray-400'>
-							Or{" "}
+							Sau{' '}
 							<Link to='/signup' className='text-[#2B4EE6] hover:text-blue-400 font-medium'>
-								create a new account
+								creează un cont nou
 							</Link>
 						</p>
 					</div>
@@ -38,7 +38,7 @@ const LoginPage = () => {
 					<form onSubmit={handleSubmit} className='space-y-6'>
 						<div>
 							<label htmlFor='email' className='block text-sm font-medium text-gray-400 mb-2'>
-								Email address
+								Adresă de email
 							</label>
 							<input
 								id='email'
@@ -47,13 +47,13 @@ const LoginPage = () => {
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								className='w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2B4EE6] focus:border-transparent transition duration-200'
-								placeholder='Enter your email'
+								placeholder='Introdu adresa de email'
 							/>
 						</div>
 
 						<div>
 							<label htmlFor='password' className='block text-sm font-medium text-gray-400 mb-2'>
-								Password
+								Parolă
 							</label>
 							<input
 								id='password'
@@ -62,7 +62,7 @@ const LoginPage = () => {
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								className='w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2B4EE6] focus:border-transparent transition duration-200'
-								placeholder='Enter your password'
+								placeholder='Introdu parola'
 							/>
 						</div>
 
@@ -76,11 +76,11 @@ const LoginPage = () => {
 									className='h-4 w-4 rounded border-gray-600 bg-gray-700 text-[#2B4EE6] focus:ring-[#2B4EE6] focus:ring-offset-gray-800'
 								/>
 								<label htmlFor='remember-me' className='ml-2 block text-sm text-gray-400'>
-									Remember me
+									Ține-mă minte
 								</label>
 							</div>
 							<Link to='/forgot-password' className='text-sm text-[#2B4EE6] hover:text-blue-400'>
-								Forgot your password?
+								Ai uitat parola?
 							</Link>
 						</div>
 
@@ -92,12 +92,12 @@ const LoginPage = () => {
 							{loading ? (
 								<>
 									<Loader className='animate-spin -ml-1 mr-2 h-5 w-5' />
-									Signing in...
+									Se autentifică...
 								</>
 							) : (
 								<>
 									<LogIn className='-ml-1 mr-2 h-5 w-5' />
-									Sign in
+									Autentificare
 								</>
 							)}
 						</button>

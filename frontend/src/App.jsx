@@ -12,6 +12,9 @@ import ProfileDashboardPage from "./pages/ProfileDashboardPage";
 import ProfileDetailsPage from "./pages/ProfileDetailsPage";
 import ProfileAddressesPage from "./pages/ProfileAddressesPage";
 import ProfileOrdersPage from "./pages/ProfileOrdersPage";
+import ProfileVehiclesPage from "./pages/ProfileVehiclesPage";
+import ProfileAppointmentsPage from "./pages/ProfileAppointmentsPage";
+
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -60,8 +63,8 @@ function App() {
 							<Route path="details" element={<ProfileDetailsPage />} />
 							<Route path="addresses" element={<ProfileAddressesPage />} />
 							<Route path="orders" element={<ProfileOrdersPage />} />
-							<Route path="vehicles" element={<div>Vehiculele Mele</div>} />
-							<Route path="appointments" element={<div>Programări Service</div>} />
+							<Route path="vehicles" element={<ProfileVehiclesPage />} />
+							<Route path="appointments" element={<ProfileAppointmentsPage />} />
 							<Route path="wishlist" element={<div>Favorite</div>} />
 						</Route>
 

@@ -30,25 +30,25 @@ const OrderSummary = ({ onProceedToCheckout }) => {
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.5 }}
 		>
-			<p className='text-xl font-semibold text-[#2B4EE6]'>Order summary</p>
+			<p className='text-xl font-semibold text-[#2B4EE6]'>Sumar comandă</p>
 
 			<div className='space-y-4'>
 				<div className='space-y-2'>
 					<dl className='flex items-center justify-between gap-4'>
-						<dt className='text-base font-normal text-gray-300'>Original price</dt>
+						<dt className='text-base font-normal text-gray-300'>Preț inițial</dt>
 						<dd className='text-base font-medium text-white'>{formattedSubtotal} ron</dd>
 					</dl>
 
 					{savings > 0 && (
 						<dl className='flex items-center justify-between gap-4'>
-							<dt className='text-base font-normal text-gray-300'>Savings</dt>
+							<dt className='text-base font-normal text-gray-300'>Economii</dt>
 							<dd className='text-base font-medium text-[#2B4EE6]'>-{formattedSavings} ron</dd>
 						</dl>
 					)}
 
 					{coupon && isCouponApplied && (
 						<dl className='flex items-center justify-between gap-4'>
-							<dt className='text-base font-normal text-gray-300'>Coupon ({coupon.code})</dt>
+							<dt className='text-base font-normal text-gray-300'>Cupon ({coupon.code})</dt>
 							<dd className='text-base font-medium text-[#2B4EE6]'>-{coupon.discountPercentage}%</dd>
 						</dl>
 					)}
@@ -65,16 +65,16 @@ const OrderSummary = ({ onProceedToCheckout }) => {
 					onClick={onProceedToCheckout}
 					disabled={isLoading}
 				>
-					Proceed to Checkout
+					Continuă către plată
 				</motion.button>
 
 				<div className='flex items-center justify-center gap-2'>
-					<span className='text-sm font-normal text-gray-400'>or</span>
+					<span className='text-sm font-normal text-gray-400'>sau</span>
 					<Link
 						to='/'
 						className='inline-flex items-center gap-2 text-sm font-medium text-[#2B4EE6] underline hover:text-blue-500 hover:no-underline'
 					>
-						Continue Shopping
+						Continuă cumpărăturile
 						<MoveRight size={16} />
 					</Link>
 				</div>

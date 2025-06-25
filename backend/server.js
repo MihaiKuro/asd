@@ -12,6 +12,11 @@ import paymentRoutes from "./routes/payment.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
 import categoryRoutes from "./routes/category.route.js";
 import orderRoutes from "./routes/order.route.js";
+import appointmentRoutes from "./routes/appointment.route.js";
+import mechanicRoutes from "./routes/mechanic.route.js";
+import serviceOrderRoutes from "./routes/serviceOrder.route.js";
+import vehicleRoutes from "./routes/vehicle.route.js";
+
 
 import { connectDB } from "./lib/db.js";
 
@@ -41,6 +46,15 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/mechanics", mechanicRoutes);
+app.use("/api/service-orders", serviceOrderRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+
+
+
+
+
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "/frontend/dist")));
@@ -54,3 +68,5 @@ app.listen(PORT, () => {
 	console.log("Server is running on http://localhost:" + PORT);
 	connectDB();
 });
+
+export default app;

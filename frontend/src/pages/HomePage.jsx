@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
 import { useCategoryStore } from "../stores/useCategoryStore";
 import FeaturedProducts from "../components/FeaturedProducts";
+import ServiceAppointment from "../components/ServiceAppointment";
 
 const HomePage = () => {
 	const { fetchFeaturedProducts, products, isLoading } = useProductStore();
@@ -24,20 +25,20 @@ const HomePage = () => {
 					<div className='grid grid-cols-1 md:grid-cols-2 gap-8 items-center'>
 						<div className='space-y-6'>
 							<h1 className='text-5xl sm:text-6xl font-bold text-white'>
-								Quality Auto Parts
+								Piese auto de calitate
 							</h1>
 							<h2 className='text-3xl sm:text-4xl font-bold text-yellow-400'>
-								For Every Vehicle
+								Pentru orice vehicul
 							</h2>
 							<p className='text-lg text-gray-200 max-w-lg'>
-								Find the perfect parts for your car with our extensive collection of OEM and aftermarket components.
+								Găsește piesele perfecte pentru mașina ta din colecția noastră extinsă de componente OEM și aftermarket.
 							</p>
 							<div className='flex flex-wrap gap-4'>
 								<Link
 									to="/categories"
 									className='inline-flex items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold rounded-lg transition duration-300'
 								>
-									Shop Now
+									Cumpără acum
 									<svg className='ml-2 w-5 h-5' viewBox='0 0 20 20' fill='currentColor'>
 										<path fillRule='evenodd' d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z' clipRule='evenodd' />
 									</svg>
@@ -45,7 +46,7 @@ const HomePage = () => {
 								<button
 									className='inline-flex items-center px-6 py-3 bg-transparent hover:bg-blue-700 text-white font-semibold rounded-lg border-2 border-white transition duration-300'
 								>
-									Find Parts by Vehicle
+									Caută piese după vehicul
 								</button>
 							</div>
 						</div>
@@ -64,9 +65,9 @@ const HomePage = () => {
 			<div className='bg-[#0B0F17] py-16'>
 				<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 					<div className='text-center mb-12'>
-						<h2 className='text-3xl font-bold text-white mb-4'>Shop by Category</h2>
+						<h2 className='text-3xl font-bold text-white mb-4'>Cumpără după categorie</h2>
 						<p className='text-gray-400'>
-							Browse our extensive collection of auto parts organized by category to find exactly what you need
+							Explorează colecția noastră extinsă de piese auto organizate pe categorii pentru a găsi exact ceea ce ai nevoie
 						</p>
 					</div>
 
@@ -87,7 +88,7 @@ const HomePage = () => {
 								<div className='absolute inset-0 bg-gradient-to-t from-black/80 to-transparent'></div>
 								<div className='absolute bottom-0 left-0 right-0 p-4'>
 									<h3 className='text-xl font-semibold text-white mb-1'>{category.name}</h3>
-									<p className='text-sm text-gray-300'>Browse {category.name}</p>
+									<p className='text-sm text-gray-300'>Vezi {category.name}</p>
 								</div>
 							</Link>
 						))}
@@ -98,7 +99,7 @@ const HomePage = () => {
 							to="/categories"
 							className='inline-flex items-center px-6 py-3 bg-[#2B4EE6] hover:bg-blue-500 text-white font-semibold rounded-lg transition duration-300'
 						>
-							View All Categories
+							Vezi toate categoriile
 						</Link>
 					</div>
 				</div>
@@ -106,6 +107,7 @@ const HomePage = () => {
 
 			{/* Featured Products Section */}
 			{!isLoading && products.length > 0 && <FeaturedProducts featuredProducts={products} />}
+			{!isLoading && <ServiceAppointment />}
 		</div>
 	);
 };

@@ -1,6 +1,12 @@
 import express from "express";
 import { adminRoute, protectRoute } from "../middleware/auth.middleware.js";
-import { getAnalyticsData, getDailySalesData } from "../controllers/analytics.controller.js";
+import { 
+	getAnalyticsData, 
+	getDailySalesData, 
+	getSalesReport, 
+	getCategoriesForFilter, 
+	getServiceSummary 
+} from "../controllers/analytics.controller.js";
 
 const router = express.Router();
 
@@ -22,5 +28,10 @@ router.get("/", protectRoute, adminRoute, async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 });
+
+// Rute pentru rapoartele de vânzări
+router.get("/sales-report", protectRoute, adminRoute, getSalesReport);
+router.get("/categories-filter", protectRoute, adminRoute, getCategoriesForFilter);
+router.get("/service-summary", protectRoute, adminRoute, getServiceSummary);
 
 export default router;

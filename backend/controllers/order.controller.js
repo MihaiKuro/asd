@@ -11,6 +11,7 @@ export const createOrder = async (req, res) => {
         }
 
         // Check if products exist and update stock
+        const orderItemsWithPrice = [];
         for (const item of orderItems) {
             const product = await Product.findById(item.product);
             if (!product) {
@@ -21,11 +22,16 @@ export const createOrder = async (req, res) => {
             }
             product.stock -= item.quantity;
             await product.save();
+            orderItemsWithPrice.push({
+                product: item.product,
+                quantity: item.quantity,
+                price: product.price
+            });
         }
 
         const order = new Order({
             user: req.user._id,
-            orderItems,
+            orderItems: orderItemsWithPrice,
             shippingAddress,
             paymentMethod,
             totalPrice,
@@ -116,11 +122,51 @@ export const updateOrderToDelivered = async (req, res) => {
 export const getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find({})
-            .populate("user", "id name")
+            .populate("user", "firstName lastName email")
             .populate("orderItems.product", "name image price");
         res.json({ orders });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });
     }
+};
+
+export const updateOrderStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        // Optionally: validate status value
+        const allowedStatuses = ["Pending", "Shipped", "Delivered", "Cancelled"];
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ message: "Invalid status value" });
+        }
+        order.status = status;
+        // If delivered, mark as paid
+        if (status === "Delivered" && !order.isPaid) {
+            order.isPaid = true;
+            order.paidAt = new Date();
+        }
+        await order.save();
+        res.json({ success: true, order });
+    } catch (error) {
+        console.error("Error updating order status:", error);
+        res.status(500).json({ message: "Error updating order status", error: error.message });
+    }
 }; 
+
+export const deleteOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        await order.deleteOne();
+        res.json({ message: "Order deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting order:", error);
+        res.status(500).json({ message: "Error deleting order", error: error.message });
+    }
+};

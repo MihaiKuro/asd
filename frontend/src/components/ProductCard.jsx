@@ -35,7 +35,7 @@ const ProductCard = ({ product }) => {
 				</div>
 				<div className='mb-4 flex items-center'>
 					<span className={`text-sm ${product.stock > 0 ? 'text-green-400' : 'text-red-400'}`}>
-						{product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
+						{product.stock > 0 ? `În stoc (${product.stock} disponibile)` : 'Stoc epuizat'}
 					</span>
 				</div>
 				<button
@@ -45,7 +45,7 @@ const ProductCard = ({ product }) => {
 					disabled={product.stock <= 0}
 				>
 					<ShoppingCart size={22} className='mr-2' />
-					{product.stock <= 0 ? 'Out of Stock' : 'Add to cart'}
+					{product.stock <= 0 ? 'Stoc epuizat' : 'Adaugă în coș'}
 				</button>
 			</div>
 		</div>

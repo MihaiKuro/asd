@@ -22,11 +22,37 @@ const populateProductFields = async (product) => {
 
 export const getAllProducts = async (req, res) => {
 	try {
-		const products = await Product.find({});
+		const { category, subcategory, minPrice, maxPrice, minStock, maxStock, isFeatured, productId } = req.query;
+		const filter = {};
+
+		if (category) {
+			filter.category = category;
+		}
+		if (subcategory) {
+			filter.subcategory = subcategory;
+		}
+		if (minPrice || maxPrice) {
+			filter.price = {};
+			if (minPrice) filter.price.$gte = parseFloat(minPrice);
+			if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+		}
+		if (minStock || maxStock) {
+			filter.stock = {};
+			if (minStock) filter.stock.$gte = parseInt(minStock);
+			if (maxStock) filter.stock.$lte = parseInt(maxStock);
+		}
+		if (isFeatured === 'true') {
+			filter.isFeatured = true;
+		}
+		if (productId) {
+			filter._id = productId;
+		}
+
+		const products = await Product.find(filter);
 		const populatedProducts = await Promise.all(
 			products.map(product => populateProductFields(product))
 		);
-		res.json({ products: populatedProducts.filter(Boolean) }); // Filter out any nulls if population fails
+		res.json({ products: populatedProducts.filter(Boolean) });
 	} catch (error) {
 		console.log("Error in getAllProducts controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
@@ -60,7 +86,7 @@ export const getFeaturedProducts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
 	try {
-		const { name, description, price, image, category, subcategory, stock } = req.body;
+		const { name, description, price, image, category, subcategory, stock, basePrice } = req.body;
 
 		// Verify that the category and subcategory exist and match
 		const categoryDoc = await Category.findById(category);
@@ -82,6 +108,7 @@ export const createProduct = async (req, res) => {
 			name,
 			description,
 			price,
+			basePrice,
 			image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
 			category,
 			subcategory,
@@ -192,10 +219,22 @@ export const getProductsByCategory = async (req, res) => {
 export const getProductsBySubcategory = async (req, res) => {
 	const { subcategory } = req.params;
 	try {
-		const products = await Product.find({ subcategory });
+		const products = await Product.find({ subcategory })
+			.populate('category', 'name slug subcategories')
+			.lean();
+		
 		const populatedProducts = await Promise.all(
-			products.map(product => populateProductFields(product))
+			products.map(async (product) => {
+				if (product.category && product.category.subcategories) {
+					const foundSubcategory = product.category.subcategories.find(
+						(sub) => sub._id.toString() === product.subcategory.toString()
+					);
+					product.subcategory = foundSubcategory || null;
+				}
+				return product;
+			})
 		);
+		
 		res.json({ products: populatedProducts.filter(Boolean) });
 	} catch (error) {
 		console.log("Error in getProductsBySubcategory controller", error.message);
@@ -231,3 +270,69 @@ async function updateFeaturedProductsCache() {
 		console.log("error in update cache function");
 	}
 }
+
+export const updateProduct = async (req, res) => {
+	try {
+		const { name, description, price, image, category, subcategory, stock } = req.body;
+		const productId = req.params.id;
+
+		const product = await Product.findById(productId);
+		if (!product) {
+			return res.status(404).json({ message: "Product not found" });
+		}
+
+		// Verify that the category and subcategory exist and match if they're being updated
+		if (category) {
+			const categoryDoc = await Category.findById(category);
+			if (!categoryDoc) {
+				return res.status(404).json({ message: "Category not found" });
+			}
+
+			if (subcategory) {
+				const subcategoryDoc = categoryDoc.subcategories.id(subcategory);
+				if (!subcategoryDoc) {
+					return res.status(404).json({ message: "Subcategory not found in this category" });
+				}
+			}
+		}
+
+		// Handle image update if a new image is provided
+		let imageUrl = product.image;
+		if (image && image !== product.image) {
+			// Delete old image from Cloudinary if it exists
+			if (product.image) {
+				const publicId = product.image.split("/").pop().split(".")[0];
+				try {
+					await cloudinary.uploader.destroy(`products/${publicId}`);
+				} catch (error) {
+					console.log("Error deleting old image from cloudinary", error);
+				}
+			}
+
+			// Upload new image
+			const cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
+			imageUrl = cloudinaryResponse.secure_url;
+		}
+
+		// Update product fields
+		const updatedProduct = await Product.findByIdAndUpdate(
+			productId,
+			{
+				name: name || product.name,
+				description: description || product.description,
+				price: price || product.price,
+				image: imageUrl,
+				category: category || product.category,
+				subcategory: subcategory || product.subcategory,
+				stock: stock !== undefined ? parseInt(stock) : product.stock,
+			},
+			{ new: true }
+		);
+
+		const populatedProduct = await populateProductFields(updatedProduct);
+		res.json(populatedProduct);
+	} catch (error) {
+		console.log("Error in updateProduct controller", error.message);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};

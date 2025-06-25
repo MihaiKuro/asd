@@ -28,11 +28,11 @@ const SignUpPage = () => {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.5 }}
 				>
-					<h2 className='text-3xl font-bold text-white mb-2'>Create your account</h2>
+					<h2 className='text-3xl font-bold text-white mb-2'>Creează un cont nou</h2>
 					<p className='text-sm text-gray-400'>
-						Already have an account?{" "}
+						Ai deja un cont?{' '}
 						<Link to='/login' className='text-blue-500 hover:text-blue-400 font-medium'>
-							Sign in here
+							Autentifică-te aici
 						</Link>
 					</p>
 				</motion.div>
@@ -46,7 +46,7 @@ const SignUpPage = () => {
 					<form onSubmit={handleSubmit} className='space-y-6'>
 						<div>
 							<label htmlFor='name' className='block text-sm font-medium text-gray-400 mb-2'>
-								Full name
+								Nume complet
 							</label>
 							<input
 								id='name'
@@ -55,13 +55,13 @@ const SignUpPage = () => {
 								value={formData.name}
 								onChange={(e) => setFormData({ ...formData, name: e.target.value })}
 								className='w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200'
-								placeholder='Enter your full name'
+								placeholder='Introdu numele complet'
 							/>
 						</div>
 
 						<div>
 							<label htmlFor='email' className='block text-sm font-medium text-gray-400 mb-2'>
-								Email address
+								Adresă de email
 							</label>
 							<input
 								id='email'
@@ -70,13 +70,13 @@ const SignUpPage = () => {
 								value={formData.email}
 								onChange={(e) => setFormData({ ...formData, email: e.target.value })}
 								className='w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200'
-								placeholder='Enter your email'
+								placeholder='Introdu adresa de email'
 							/>
 						</div>
 
 						<div>
 							<label htmlFor='password' className='block text-sm font-medium text-gray-400 mb-2'>
-								Password
+								Parolă
 							</label>
 							<input
 								id='password'
@@ -85,13 +85,13 @@ const SignUpPage = () => {
 								value={formData.password}
 								onChange={(e) => setFormData({ ...formData, password: e.target.value })}
 								className='w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200'
-								placeholder='Create a password'
+								placeholder='Creează o parolă'
 							/>
 						</div>
 
 						<div>
 							<label htmlFor='confirmPassword' className='block text-sm font-medium text-gray-400 mb-2'>
-								Confirm Password
+								Confirmă parola
 							</label>
 							<input
 								id='confirmPassword'
@@ -100,7 +100,7 @@ const SignUpPage = () => {
 								value={formData.confirmPassword}
 								onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
 								className='w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200'
-								placeholder='Confirm your password'
+								placeholder='Confirmă parola'
 							/>
 						</div>
 
@@ -112,12 +112,12 @@ const SignUpPage = () => {
 							{loading ? (
 								<>
 									<Loader className='animate-spin -ml-1 mr-2 h-5 w-5' />
-									Creating account...
+									Se creează contul...
 								</>
 							) : (
 								<>
 									<UserPlus className='-ml-1 mr-2 h-5 w-5' />
-									Create account
+									Creează cont
 								</>
 							)}
 						</button>
